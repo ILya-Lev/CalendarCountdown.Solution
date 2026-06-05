@@ -1,0 +1,46 @@
+﻿@page "{id}"
+@model CalendarCountdown.Pages.EventModel
+@{
+    ViewData["Title"] = Model.EventName;
+}
+
+<div class="text-center mt-5">
+    <h1>@Model.EventName</h1>
+    <h3>Starts at: @Model.StartTimeFormatted</h3>
+
+    <div class="card mt-4 mx-auto" style="max-width: 600px;">
+        <div class="card-body">
+            <h2 id="timer" class="display-4 text-primary">Loading...</h2>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Inject the raw integer directly into JS, bypassing string parsing.
+        const targetTimestamp = @(Model.TargetTimestamp.HasValue ? Model.TargetTimestamp.Value.ToString() : "null");
+
+        if (!targetTimestamp) {
+            document.getElementById("timer").innerText = "All-day event (No exact time)";
+        } else {
+            const interval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetTimestamp - now;
+
+                if (distance < 0) {
+                    clearInterval(interval);
+                    document.getElementById("timer").innerText = "Event has started!";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("timer").innerText =
+                    `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }, 1000);
+        }
+    </script>
+}

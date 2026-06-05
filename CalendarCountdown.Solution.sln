@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11822.322 stable
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarCountdown.Solution", "CalendarCountdown.Solution.csproj", "{CE202DBF-E904-8761-E5EF-D32EC59845BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CE202DBF-E904-8761-E5EF-D32EC59845BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE202DBF-E904-8761-E5EF-D32EC59845BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE202DBF-E904-8761-E5EF-D32EC59845BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE202DBF-E904-8761-E5EF-D32EC59845BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4628E63A-2294-49A1-A4DB-42DB5A35B367}
+	EndGlobalSection
+EndGlobal

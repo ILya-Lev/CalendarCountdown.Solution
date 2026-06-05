@@ -1,0 +1,17 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Upcoming Events";
+}
+
+<h1>Upcoming Events</h1>
+
+<ul class="list-group">
+    @foreach (var ev in Model.Events)
+    {
+        <li class="list-group-item">
+            <a asp-page="/Event" asp-route-id="@ev.Id">@ev.Summary</a>
+            - @(ev.Start.DateTimeDateTimeOffset?.ToString("g") ?? ev.Start.Date)
+        </li>
+    }
+</ul>
