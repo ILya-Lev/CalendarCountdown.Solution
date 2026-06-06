@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.6.11822.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarCountdown.Solution", "CalendarCountdown.Solution.csproj", "{CE202DBF-E904-8761-E5EF-D32EC59845BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarCountdown.Solution", "CalendarCountdown.Solution\CalendarCountdown.Solution.csproj", "{CE202DBF-E904-8761-E5EF-D32EC59845BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarCountdown.Tests", "..\CalendarCountdown.Tests\CalendarCountdown.Tests.csproj", "{0828DE33-1439-4042-B01C-35806348F5AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarCountdown.Tests", "CalendarCountdown.Tests\CalendarCountdown.Tests.csproj", "{0828DE33-1439-4042-B01C-35806348F5AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
