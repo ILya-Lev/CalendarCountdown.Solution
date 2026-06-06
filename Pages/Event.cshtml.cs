@@ -10,7 +10,7 @@ public class EventModel(ICalendarService calendarService) : PageModel
     public string? StartTimeFormatted { get; private set; }
     public long? TargetTimestamp { get; private set; }
 
-    public async Task<IActionResult> OnGetAsync(string id)
+    public async Task<IActionResult> OnGetAsync([FromQuery] string calendarId, [FromQuery] string id)
     {
         if (string.IsNullOrEmpty(id)) return RedirectToPage("/Index");
 

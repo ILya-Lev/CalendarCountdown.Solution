@@ -1,17 +1,99 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Upcoming Events";
+    ViewData["Title"] = "Upcoming Events Gantt";
 }
 
-<h1>Upcoming Events</h1>
+<h1>Upcoming Events Timeline</h1>
 
-<ul class="list-group">
-    @foreach (var ev in Model.Events)
-    {
-        <li class="list-group-item">
-            <a asp-page="/Event" asp-route-id="@ev.Id">@ev.Summary</a>
-            - @(ev.Start.DateTimeDateTimeOffset?.ToString("g") ?? ev.Start.Date)
-        </li>
+<div class="card mt-4">
+    <div class="card-body">
+        <div id="timeline-container" style="height: 500px; width: 100%;"></div>
+    </div>
+</div>
+
+<style>
+    #timeline-container svg {
+        overflow: visible !important;
     }
-</ul>
+
+        #timeline-container svg g,
+        #timeline-container svg text {
+            clip-path: none !important;
+            /* Adds a white outline so text remains readable when it spills over other colored bars */
+            /* text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white; */
+        }
+</style>
+
+@section Scripts {
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        const eventsData = @Html.Raw(Model.EventsJson);
+
+        if (eventsData.length === 0) {
+        document.getElementById("timeline-container").innerHTML = "<p class='text-muted'>No upcoming events found.</p>";
+        } else {
+        google.charts.load('current', {'packages':['timeline']});
+        google.charts.setOnLoadCallback(drawChart);
+        }
+
+        function drawChart() {
+        const container = document.getElementById('timeline-container');
+        const chart = new google.visualization.Timeline(container);
+        const dataTable = new google.visualization.DataTable();
+
+        dataTable.addColumn({ type: 'string', id: 'Calendar' });
+        dataTable.addColumn({ type: 'string', id: 'Event Name' });
+        dataTable.addColumn({ type: 'date', id: 'Start' });
+        dataTable.addColumn({ type: 'date', id: 'End' });
+
+        const rows = eventsData.map(e => [
+        e.calendarId,
+        e.name,
+        new Date(e.startMs),
+        new Date(e.endMs)
+        ]);
+
+        dataTable.addRows(rows);
+
+        const options = {
+        timeline: { groupByRowLabel: true }
+        };
+
+        // 1. Navigation click handler
+        google.visualization.events.addListener(chart, 'select', function () {
+        const selection = chart.getSelection();
+        if (selection.length > 0) {
+        const selectedItem = eventsData[selection[0].row];
+        window.location.href = `/Event?calendarId=${encodeURIComponent(selectedItem.calendarId)}&id=${encodeURIComponent(selectedItem.id)}`;
+        }
+        });
+
+        // 2. Bypass Google's text truncation
+        google.visualization.events.addListener(chart, 'ready', function () {
+        // Remove the physical clipping bounds
+        container.querySelectorAll('[clip-path]').forEach(el => el.removeAttribute('clip-path'));
+
+        // Find all text elements and restore strings that Google deleted
+        container.querySelectorAll('svg text').forEach(textEl => {
+        const currentText = textEl.textContent;
+
+        if (currentText.includes('..')) {
+        // Extract whatever letters survived the truncation (e.g., "Parking Ge")
+        const prefix = currentText.replace(/\./g, '').trim();
+
+        if (prefix.length > 0) {
+        // Match the prefix against your original C# payload array
+        const match = eventsData.find(e => e.name.startsWith(prefix));
+        if (match) {
+        textEl.textContent = match.name; // Restore the full string
+        }
+        }
+        }
+        });
+        });
+
+        chart.draw(dataTable, options);
+        }
+    </script>
+}

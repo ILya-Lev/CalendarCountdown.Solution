@@ -32,13 +32,13 @@ public class GoogleCalendarService : ICalendarService
         });
     }
 
-    public async Task<IList<Event>> GetUpcomingEventsAsync(int maxResults = 10)
+    public async Task<IList<(string CalendarId, Event ev)>> GetUpcomingEventsAsync(int maxResults = 10)
     {
-        var tasks = _calendarIds.Select(cid => GetUpcomingEventsPerCalendar(cid, maxResults));
+        var tasks = _calendarIds.Select(cid => GetUpcomingEventsPerCalendar(cid, maxResults).ContinueWith(t => (t.Result, cid)));
         var results = await Task.WhenAll(tasks);
-        return results.SelectMany(r => r)
-            .OrderBy(r => r.Start.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.Start.Date))
-            .ThenBy(r => r.End.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.End.Date)).ToArray();
+        return results.SelectMany(r => r.Result.Select(ev => (r.cid, ev)))
+            .OrderBy(r => r.ev.Start.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.ev.Start.Date))
+            .ThenBy(r => r.ev.End.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.ev.End.Date)).ToArray();
     }
 
 
