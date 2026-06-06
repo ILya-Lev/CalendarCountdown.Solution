@@ -1,5 +1,6 @@
 using CalendarCountdown.Solution.Services;
 using Microsoft.Extensions.Hosting.WindowsServices;
+using Microsoft.SemanticKernel;
 
 // Ensure the app finds its files when executed by the Windows Service Control Manager
 var options = new WebApplicationOptions
@@ -24,6 +25,9 @@ builder.Services.AddWindowsService(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<ICalendarService, GoogleCalendarService>();
 builder.Services.AddHttpClient<ILocationReferenceProvider, LocationReferenceProvider>();
+
+// Register Semantic Kernel to enable importing skills/plugins
+builder.Services.AddKernel();
 
 var app = builder.Build();
 
