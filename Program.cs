@@ -13,7 +13,7 @@ var options = new WebApplicationOptions
 var builder = WebApplication.CreateBuilder(options);
 
 // Explicitly load the copied secrets file into the configuration pipeline
-builder.Configuration.AddJsonFile("appsettings.Secrets.json", optional: false, reloadOnChange: true);
+builder.Configuration.AddJsonFile("appsettings.Secrets.json", optional: true, reloadOnChange: true);
 
 // Register Windows Service lifetime and define the service name
 builder.Services.AddWindowsService(options =>

@@ -33,7 +33,6 @@
         document.getElementById("visualization").innerHTML = "<p class='text-muted'>No upcoming events found.</p>";
         } else {
         const container = document.getElementById('visualization');
-
         const palette = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1'];
 
         const uniqueCalendars = [...new Set(eventsData.map(e => e.calendarId))];
@@ -41,21 +40,16 @@
         uniqueCalendars.map((id, index) => ({ id: id, content: id }))
         );
 
-        // --- CHANGED LOGIC HERE ---
-        // Pass the 'index' into the map function
         const items = new vis.DataSet(
         eventsData.map((e, index) => {
-        // Assign color based on the event's chronological index
         const colorIndex = index % palette.length;
-        const backgroundColor = palette[colorIndex];
-
         return {
         id: e.id,
         group: e.calendarId,
         content: e.name,
         start: new Date(e.startMs),
         end: new Date(e.endMs),
-        style: `background-color: ${backgroundColor};`
+        style: `background-color: ${palette[colorIndex]};`
         };
         })
         );
@@ -69,7 +63,24 @@
         verticalScroll: true
         };
 
+        // --- RESTORE STATE ---
+        // Check if we have previously saved viewport boundaries
+        const savedStart = sessionStorage.getItem('timeline_start');
+        const savedEnd = sessionStorage.getItem('timeline_end');
+
+        if (savedStart && savedEnd) {
+        options.start = new Date(parseInt(savedStart, 10));
+        options.end = new Date(parseInt(savedEnd, 10));
+        }
+
         const timeline = new vis.Timeline(container, items, groups, options);
+
+        // --- SAVE STATE ---
+        // Triggered every time the user finishes panning or zooming
+        timeline.on('rangechanged', function (properties) {
+        sessionStorage.setItem('timeline_start', properties.start.getTime());
+        sessionStorage.setItem('timeline_end', properties.end.getTime());
+        });
 
         timeline.on('select', function (properties) {
         if (properties.items.length > 0) {

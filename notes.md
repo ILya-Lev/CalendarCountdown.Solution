@@ -71,10 +71,10 @@ builder.Services.AddWindowsService(options =>
 
 ### 2. Publishing the Application
 
-Run this command to create a self-contained, R2R-optimized, and trimmed executable with minimal console noise:
+Publish a self-contained and R2R-optimized app with min console noise, still showing elapsed time:
 
 ```bash
-dotnet publish -c Release -o C:\path\CalendarCountdown -r win-x64 --self-contained true -v q -clp:ErrorsOnly
+dotnet publish -c Release -o C:\deployments\CalendarCountdown -r win-x64 --self-contained true -p:WarningLevel=0 -tl
 
 ```
 
