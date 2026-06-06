@@ -2,9 +2,10 @@ using CalendarCountdown.Solution.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace CalendarCountdown.Pages;
+namespace CalendarCountdown.Solution.Pages;
 
-public class EventModel(ICalendarService calendarService) : PageModel
+public class EventModel(ICalendarService calendarService, ILocationReferenceProvider locationReferenceProvider)
+    : PageModel
 {
     public string EventName { get; private set; } = string.Empty;
     public string? StartTimeFormatted { get; private set; }
@@ -12,7 +13,9 @@ public class EventModel(ICalendarService calendarService) : PageModel
     public long? TargetTimestamp { get; private set; }
     public string? Description { get; private set; }
     public string? HtmlLink { get; private set; }
-    public string? Location { get; private set; }
+    public string? DisplayLocationText { get; private set; }
+    public string? MapIframeSrc { get; private set; }
+    public string? MapExternalUrl { get; private set; }
 
     public async Task<IActionResult> OnGetAsync([FromQuery] string calendarId, [FromQuery] string id)
     {
@@ -24,7 +27,13 @@ public class EventModel(ICalendarService calendarService) : PageModel
         EventName = ev.Summary;
         Description = ev.Description;
         HtmlLink = ev.HtmlLink;
-        Location = ev.Location;
+        var locationData = await locationReferenceProvider.ParseLocationData(ev.Location, ev.Description);
+        if (locationData is not null)
+        {
+            DisplayLocationText = locationData.Value.DisplayLocationText;
+            MapExternalUrl = locationData.Value.MapExternalUrl;
+            MapIframeSrc = locationData.Value.MapIframeSrc;
+        }
 
         var dt = ev.Start.DateTimeDateTimeOffset?.LocalDateTime ?? DateTimeOffset.Parse(ev.Start.Date).LocalDateTime;
         InitializeProperties(dt);

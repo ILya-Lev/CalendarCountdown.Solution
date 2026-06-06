@@ -23,6 +23,7 @@ builder.Services.AddWindowsService(options =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<ICalendarService, GoogleCalendarService>();
+builder.Services.AddHttpClient<ILocationReferenceProvider, LocationReferenceProvider>();
 
 var app = builder.Build();
 

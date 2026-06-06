@@ -17,9 +17,7 @@
 			<SecretsFile>$([System.Environment]::GetFolderPath(SpecialFolder.ApplicationData))\Microsoft\UserSecrets\$(UserSecretsId)\secrets.json</SecretsFile>
 		</PropertyGroup>
 
-		<Copy SourceFiles="$(SecretsFile)"
-		      DestinationFiles="$(PublishDir)appsettings.Secrets.json"
-		      Condition="Exists('$(SecretsFile)')" />
+		<Copy SourceFiles="$(SecretsFile)" DestinationFiles="$(PublishDir)appsettings.Secrets.json" Condition="Exists('$(SecretsFile)')" />
 	</Target>
 
 	<ItemGroup>
@@ -28,4 +26,8 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.8" />
 	</ItemGroup>
 
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="CalendarCountdown.Tests" />
+	</ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 ﻿@page
-@model CalendarCountdown.Pages.EventModel
+@model EventModel
 @{
     ViewData["Title"] = Model.EventName;
 }
@@ -46,28 +46,40 @@
 
         <div class="col-lg-6 d-flex flex-column gap-4">
 
-            @if (!string.IsNullOrEmpty(Model.Location))
+            @if (!string.IsNullOrEmpty(Model.DisplayLocationText))
             {
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0 ps-4">
                         <h5 class="text-muted mb-1">Location</h5>
                         <p class="text-dark fw-medium mb-3">
-                            <i class="bi bi-geo-alt-fill text-danger me-1"></i> @Model.Location
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i> @Model.DisplayLocationText
                         </p>
                     </div>
-                    <div class="card-body p-0">
-                        <iframe width="100%"
-                                height="350"
-                                style="border:0; border-radius: 0 0 0.375rem 0.375rem;"
-                                loading="lazy"
-                                allowfullscreen
-                                referrerpolicy="no-referrer-when-downgrade"
-                                src="https://maps.google.com/maps?q=@Uri.EscapeDataString(Model.Location)&t=&z=15&ie=UTF8&iwloc=&output=embed">
-                        </iframe>
-                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.MapIframeSrc))
+                    {
+                        <div class="card-body p-0">
+                            <iframe width="100%"
+                                    height="350"
+                                    style="border:0; border-radius: 0 0 0.375rem 0.375rem;"
+                                    loading="lazy"
+                                    allowfullscreen
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    src="@Model.MapIframeSrc">
+                            </iframe>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(Model.MapExternalUrl))
+                    {
+                        <div class="card-body bg-light text-center py-5" style="border-radius: 0 0 0.375rem 0.375rem;">
+                            <h6 class="text-muted mb-4">This location uses a shortened link that cannot be displayed directly here.</h6>
+                            <a href="@Model.MapExternalUrl" target="_blank" rel="noopener noreferrer" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">
+                                Open map in a new tab
+                            </a>
+                        </div>
+                    }
                 </div>
             }
-
             @if (!string.IsNullOrEmpty(Model.Description))
             {
                 <div class="card shadow-sm border-0">
@@ -79,7 +91,7 @@
                     </div>
                 </div>
             }
-            else if (string.IsNullOrEmpty(Model.Location))
+            @if (string.IsNullOrEmpty(Model.Description) && string.IsNullOrEmpty(Model.DisplayLocationText))
             {
                 <div class="card shadow-sm border-0 bg-light">
                     <div class="card-body d-flex align-items-center justify-content-center p-4">
