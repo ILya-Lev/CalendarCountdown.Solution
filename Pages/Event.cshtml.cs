@@ -8,6 +8,7 @@ public class EventModel(ICalendarService calendarService) : PageModel
 {
     public string EventName { get; private set; } = string.Empty;
     public string? StartTimeFormatted { get; private set; }
+    public string? EndTimeFormatted { get; private set; }
     public long? TargetTimestamp { get; private set; }
 
     public async Task<IActionResult> OnGetAsync([FromQuery] string calendarId, [FromQuery] string id)
@@ -21,6 +22,7 @@ public class EventModel(ICalendarService calendarService) : PageModel
 
         var dt = ev.Start.DateTimeDateTimeOffset?.LocalDateTime ?? DateTimeOffset.Parse(ev.Start.Date).LocalDateTime;
         InitializeProperties(dt);
+        EndTimeFormatted = (ev.End.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(ev.End.Date)).LocalDateTime.ToString("f");
 
         return Page();
     }

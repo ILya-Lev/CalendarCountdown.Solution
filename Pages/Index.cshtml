@@ -4,96 +4,82 @@
     ViewData["Title"] = "Upcoming Events Gantt";
 }
 
+<script type="text/javascript" src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+<link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+
 <h1>Upcoming Events Timeline</h1>
 
 <div class="card mt-4">
     <div class="card-body">
-        <div id="timeline-container" style="height: 500px; width: 100%;"></div>
+        <div id="visualization" style="width: 100%;"></div>
     </div>
 </div>
 
 <style>
-    #timeline-container svg {
-        overflow: visible !important;
+    /* Add a clean white text color and remove default borders for the colored blocks */
+    .vis-item {
+    color: white !important;
+    border: none !important;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-
-        #timeline-container svg g,
-        #timeline-container svg text {
-            clip-path: none !important;
-            /* Adds a white outline so text remains readable when it spills over other colored bars */
-            /* text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white; */
-        }
 </style>
 
 @section Scripts {
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script>
         const eventsData = @Html.Raw(Model.EventsJson);
 
         if (eventsData.length === 0) {
-        document.getElementById("timeline-container").innerHTML = "<p class='text-muted'>No upcoming events found.</p>";
+        document.getElementById("visualization").innerHTML = "<p class='text-muted'>No upcoming events found.</p>";
         } else {
-        google.charts.load('current', {'packages':['timeline']});
-        google.charts.setOnLoadCallback(drawChart);
-        }
+        const container = document.getElementById('visualization');
 
-        function drawChart() {
-        const container = document.getElementById('timeline-container');
-        const chart = new google.visualization.Timeline(container);
-        const dataTable = new google.visualization.DataTable();
+        const palette = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#AB47BC', '#00ACC1'];
 
-        dataTable.addColumn({ type: 'string', id: 'Calendar' });
-        dataTable.addColumn({ type: 'string', id: 'Event Name' });
-        dataTable.addColumn({ type: 'date', id: 'Start' });
-        dataTable.addColumn({ type: 'date', id: 'End' });
+        const uniqueCalendars = [...new Set(eventsData.map(e => e.calendarId))];
+        const groups = new vis.DataSet(
+        uniqueCalendars.map((id, index) => ({ id: id, content: id }))
+        );
 
-        const rows = eventsData.map(e => [
-        e.calendarId,
-        e.name,
-        new Date(e.startMs),
-        new Date(e.endMs)
-        ]);
+        // --- CHANGED LOGIC HERE ---
+        // Pass the 'index' into the map function
+        const items = new vis.DataSet(
+        eventsData.map((e, index) => {
+        // Assign color based on the event's chronological index
+        const colorIndex = index % palette.length;
+        const backgroundColor = palette[colorIndex];
 
-        dataTable.addRows(rows);
+        return {
+        id: e.id,
+        group: e.calendarId,
+        content: e.name,
+        start: new Date(e.startMs),
+        end: new Date(e.endMs),
+        style: `background-color: ${backgroundColor};`
+        };
+        })
+        );
 
         const options = {
-        timeline: { groupByRowLabel: true }
+        stack: true,
+        margin: { item: 10 },
+        orientation: 'top',
+        horizontalScroll: true,
+        zoomKey: 'ctrlKey',
+        verticalScroll: true
         };
 
-        // 1. Navigation click handler
-        google.visualization.events.addListener(chart, 'select', function () {
-        const selection = chart.getSelection();
-        if (selection.length > 0) {
-        const selectedItem = eventsData[selection[0].row];
-        window.location.href = `/Event?calendarId=${encodeURIComponent(selectedItem.calendarId)}&id=${encodeURIComponent(selectedItem.id)}`;
-        }
-        });
+        const timeline = new vis.Timeline(container, items, groups, options);
 
-        // 2. Bypass Google's text truncation
-        google.visualization.events.addListener(chart, 'ready', function () {
-        // Remove the physical clipping bounds
-        container.querySelectorAll('[clip-path]').forEach(el => el.removeAttribute('clip-path'));
-
-        // Find all text elements and restore strings that Google deleted
-        container.querySelectorAll('svg text').forEach(textEl => {
-        const currentText = textEl.textContent;
-
-        if (currentText.includes('..')) {
-        // Extract whatever letters survived the truncation (e.g., "Parking Ge")
-        const prefix = currentText.replace(/\./g, '').trim();
-
-        if (prefix.length > 0) {
-        // Match the prefix against your original C# payload array
-        const match = eventsData.find(e => e.name.startsWith(prefix));
-        if (match) {
-        textEl.textContent = match.name; // Restore the full string
-        }
+        timeline.on('select', function (properties) {
+        if (properties.items.length > 0) {
+        const selectedId = properties.items[0];
+        const selectedEvent = eventsData.find(e => e.id === selectedId);
+        if (selectedEvent) {
+        window.location.href = `/Event?calendarId=${encodeURIComponent(selectedEvent.calendarId)}&id=${encodeURIComponent(selectedEvent.id)}`;
         }
         }
         });
-        });
-
-        chart.draw(dataTable, options);
         }
     </script>
 }

@@ -8,14 +8,14 @@ public class IndexModel(ICalendarService calendarService) : PageModel
 {
     private const long Hour = 60 * 60 * 1000;
     private const long Day24Hours = Hour * 24;
-    private const long MinDurationMs = Hour * 6;
+    private const long MinDurationMs = Hour * 12;
 
     public string EventsJson { get; private set; } = "[]";
 
     public async Task OnGetAsync()
     {
         // Project into an anonymous type for clean JSON serialization
-        var displayEvents = (await calendarService.GetUpcomingEventsAsync()).Select(pair =>
+        var displayEvents = (await calendarService.GetUpcomingEventsAsync(100)).Select(pair =>
         {
             long startMs = 0;
             long endMs = 0;
@@ -38,6 +38,10 @@ public class IndexModel(ICalendarService calendarService) : PageModel
                     endMs = startMs + Day24Hours; // Default 1 day
             }
 
+            //// --- ENFORCE MINIMUM VISUAL DURATION ---
+            if (endMs - startMs < MinDurationMs)
+                endMs = startMs + MinDurationMs;
+
             return new
             {
                 id = pair.ev.Id,
@@ -49,18 +53,8 @@ public class IndexModel(ICalendarService calendarService) : PageModel
         })
         .Where(x => x.startMs > 0 && x.endMs >= x.startMs)
         .OrderBy(x => x.startMs)
-        .ToArray();
-
-        // --- ENFORCE MINIMUM VISUAL DURATION ---
-        for (int i = 1; i < displayEvents.Length; i++)
-        {
-            if (displayEvents[i - 1].endMs + MinDurationMs < displayEvents[i].startMs)
-                displayEvents[i - 1] = displayEvents[i - 1] with
-                {
-                    endMs = displayEvents[i].startMs - MinDurationMs / 2
-                };
-        }
-
+        ;
+        
         EventsJson = JsonSerializer.Serialize(displayEvents);
     }
 }
