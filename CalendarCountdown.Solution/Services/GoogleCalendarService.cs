@@ -54,11 +54,27 @@ public class GoogleCalendarService : ICalendarService
 
     public async Task<IList<(string CalendarId, Event ev)>> GetUpcomingEventsAsync(int maxResults = 10)
     {
-        var tasks = _calendarIds.Select(cid => GetUpcomingEventsPerCalendar(cid, maxResults).ContinueWith(t => (t.Result, cid)));
+        var tasks = _calendarIds.Select(async cid =>
+        {
+            try
+            {
+                var events = await GetUpcomingEventsPerCalendar(cid, maxResults);
+                return (CalendarId: cid, Events: events ?? [], Success: true);
+            }
+            catch (Exception)
+            {
+                return (CalendarId: cid, Events: [], Success: false);
+            }
+        });
+
         var results = await Task.WhenAll(tasks);
-        return results.SelectMany(r => r.Result.Select(ev => (r.cid, ev)))
+
+        return results
+            .Where(r => r.Success && r.Events.Any())
+            .SelectMany(r => r.Events.Select(ev => (r.CalendarId, ev)))
             .OrderBy(r => r.ev.Start.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.ev.Start.Date))
-            .ThenBy(r => r.ev.End.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.ev.End.Date)).ToArray();
+            .ThenBy(r => r.ev.End.DateTimeDateTimeOffset ?? DateTimeOffset.Parse(r.ev.End.Date))
+            .ToArray();
     }
 
 

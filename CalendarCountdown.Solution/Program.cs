@@ -37,8 +37,16 @@ builder.Services.AddAuthentication(options =>
     .AddCookie()
     .AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        var clientId = builder.Configuration["Authentication:Google:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+        {
+            throw new InvalidOperationException("CRITICAL: Google OAuth credentials are missing. Check your appsettings.Secrets.json file.");
+        }
+
+        options.ClientId = clientId;
+        options.ClientSecret = clientSecret;
         options.SaveTokens = true; // Required to pass the token to the Calendar API
         options.Scope.Add("https://www.googleapis.com/auth/calendar.readonly");
     });
