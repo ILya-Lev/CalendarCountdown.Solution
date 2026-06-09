@@ -23,8 +23,9 @@
 	<ItemGroup>
 		<PackageReference Include="Google.Apis.Auth" Version="1.75.0" />
 		<PackageReference Include="Google.Apis.Calendar.v3" Version="1.74.0.4154" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.8" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.35.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="11.0.0-preview.5.26302.115" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="11.0.0-preview.5.26302.115" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.77.0" />
 	</ItemGroup>
 
 

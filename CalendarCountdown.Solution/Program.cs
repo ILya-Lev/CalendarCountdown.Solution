@@ -1,4 +1,6 @@
 using CalendarCountdown.Solution.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.SemanticKernel;
 
@@ -26,6 +28,31 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<ICalendarService, GoogleCalendarService>();
 builder.Services.AddHttpClient<ILocationReferenceProvider, LocationReferenceProvider>();
 
+// Configure OAuth 2.0
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    })
+    .AddCookie()
+    .AddGoogle(options =>
+    {
+        var clientId = builder.Configuration["Authentication:Google:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+        {
+            throw new InvalidOperationException("CRITICAL: Google OAuth credentials are missing. Check your appsettings.Secrets.json file.");
+        }
+
+        options.ClientId = clientId;
+        options.ClientSecret = clientSecret;
+        options.SaveTokens = true; // Required to pass the token to the Calendar API
+        options.Scope.Add("https://www.googleapis.com/auth/calendar.readonly");
+    });
+
+builder.Services.AddHttpContextAccessor();
+
 // Register Semantic Kernel to enable importing skills/plugins
 builder.Services.AddKernel();
 
@@ -40,6 +67,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapRazorPages();
 

@@ -1,4 +1,6 @@
 using CalendarCountdown.Solution.Services;
+using Google;
+using Google.Apis.Calendar.v3.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -21,8 +23,20 @@ public class EventModel(ICalendarService calendarService, ILocationReferenceProv
     {
         if (string.IsNullOrEmpty(id)) return RedirectToPage("/Index");
 
-        var ev = await calendarService.GetEventAsync(id);
-        if (ev is null) return NotFound();
+        Event? ev = null;
+        try
+        {
+            ev = await calendarService.GetEventAsync(id);
+            if (ev is null) return NotFound();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Challenge(); //token is missing
+        }
+        catch (GoogleApiException exc) when (exc.HttpStatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            return Challenge(); //token is present, but expired
+        }
 
         EventName = ev.Summary;
         Description = ev.Description;
