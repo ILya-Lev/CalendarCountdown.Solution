@@ -1,9 +1,11 @@
 using System.Text.Json;
 using CalendarCountdown.Solution.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace CalendarCountdown.Solution.Pages;
 
+[Authorize]
 public class IndexModel(ICalendarService calendarService) : PageModel
 {
     private const long Hour = 60 * 60 * 1000;
