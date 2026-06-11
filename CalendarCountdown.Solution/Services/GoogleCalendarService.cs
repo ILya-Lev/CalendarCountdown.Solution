@@ -1,4 +1,6 @@
 ﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
@@ -10,10 +12,14 @@ public class GoogleCalendarService : ICalendarService
 {
     private readonly Lazy<Task<CalendarService>> _calendarService;
     private readonly string[] _calendarIds;
+    private string? _clientId;
+    private string? _clientSecret;
 
     public GoogleCalendarService(IConfiguration config, IHttpContextAccessor httpContextAccessor)
     {
         _calendarIds = config.GetSection("GoogleCalendar:CalendarIds").Get<string[]>() ?? [];
+        _clientId = config["Authentication:Google:ClientId"];
+        _clientSecret = config["Authentication:Google:ClientSecret"];
 
         //var authKeys = config.GetSection("GoogleCalendar:ServiceAccount")
         //    .GetChildren()
@@ -43,7 +49,26 @@ public class GoogleCalendarService : ICalendarService
         var accessToken = await context.GetTokenAsync("access_token")
                           ?? throw new UnauthorizedAccessException("Google access token is missing.");
 
-        var credential = GoogleCredential.FromAccessToken(accessToken);
+        var refreshToken = await context.GetTokenAsync("refresh_token");
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            throw new UnauthorizedAccessException("Refresh token is missing. Re-authentication required.");
+        }
+
+        var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+        {
+            ClientSecrets = new ClientSecrets
+            {
+                ClientId = _clientId,
+                ClientSecret = _clientSecret
+            }
+        });
+
+        var credential = new UserCredential(flow, "user", new TokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        });
 
         return new CalendarService(new BaseClientService.Initializer
         {

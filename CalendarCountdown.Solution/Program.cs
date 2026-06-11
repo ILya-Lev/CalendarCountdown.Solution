@@ -19,23 +19,20 @@ var builder = WebApplication.CreateBuilder(options);
 builder.Configuration.AddJsonFile("appsettings.Secrets.json", optional: true, reloadOnChange: true);
 
 // Register Windows Service lifetime and define the service name
-builder.Services.AddWindowsService(options =>
-{
-    options.ServiceName = "CalendarCountdown";
-});
+builder.Services.AddWindowsService(lifetimeOptions => { lifetimeOptions.ServiceName = "CalendarCountdown"; });
 
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<ICalendarService, GoogleCalendarService>();
 builder.Services.AddHttpClient<ILocationReferenceProvider, LocationReferenceProvider>();
 
 // Configure OAuth 2.0
-builder.Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(configureOptions =>
     {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        configureOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        configureOptions.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     })
     .AddCookie()
-    .AddGoogle(options =>
+    .AddGoogle(googleOptions =>
     {
         var clientId = builder.Configuration["Authentication:Google:ClientId"];
         var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
@@ -45,10 +42,12 @@ builder.Services.AddAuthentication(options =>
             throw new InvalidOperationException("CRITICAL: Google OAuth credentials are missing. Check your appsettings.Secrets.json file.");
         }
 
-        options.ClientId = clientId;
-        options.ClientSecret = clientSecret;
-        options.SaveTokens = true; // Required to pass the token to the Calendar API
-        options.Scope.Add("https://www.googleapis.com/auth/calendar.readonly");
+        googleOptions.ClientId = clientId;
+        googleOptions.ClientSecret = clientSecret;
+        googleOptions.SaveTokens = true; // Required to pass the token to the Calendar API
+        googleOptions.Scope.Add("https://www.googleapis.com/auth/calendar.readonly");
+        googleOptions.AccessType = "offline";// Request a refresh token for background auto-renewal
+        googleOptions.AdditionalAuthorizationParameters.Add("prompt", "consent");// Force consent screen to guarantee Google returns the refresh token
     });
 
 builder.Services.AddHttpContextAccessor();
